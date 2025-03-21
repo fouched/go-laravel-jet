@@ -1,11 +1,16 @@
 package main
 
-import "github.com/fouched/celeritas"
+import (
+	"github.com/fouched/celeritas"
+	"myapp/handlers"
+)
 
 type application struct {
-	App *celeritas.Celeritas
+	App      *celeritas.Celeritas
+	Handlers *handlers.Handlers
 }
 
 func main() {
-	initApplication()
+	c := initApplication()
+	c.App.ListenAndServe()
 }

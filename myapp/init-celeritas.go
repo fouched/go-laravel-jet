@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/fouched/celeritas"
 	"log"
+	"myapp/handlers"
 	"os"
 )
 
@@ -20,11 +21,16 @@ func initApplication() *application {
 	}
 
 	cel.AppName = "myapp"
-	cel.InfoLog.Println("Debug is set to", cel.Debug)
+
+	myHandlers := &handlers.Handlers{App: cel}
 
 	app := &application{
-		App: cel,
+		App:      cel,
+		Handlers: myHandlers,
 	}
+
+	// set application routes to celeritas routes
+	app.App.Routes = app.routes()
 
 	return app
 }
