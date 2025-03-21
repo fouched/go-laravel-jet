@@ -2,7 +2,9 @@ package render
 
 import (
 	"fmt"
+	"github.com/CloudyKit/jet/v6"
 	"html/template"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -13,6 +15,7 @@ type Render struct {
 	Secure     bool
 	Port       string
 	ServerName string
+	JetViews   *jet.Set
 }
 
 type TemplateData struct {
@@ -32,11 +35,12 @@ func (c *Render) Page(w http.ResponseWriter, r *http.Request, view string, varia
 	case "go":
 		return c.GoPage(w, r, view, data)
 	case "jet":
-		return c.JetPage(w, r, view, data)
+		return c.JetPage(w, r, view, variables, data)
 	}
 	return nil
 }
 
+// GoPage renders a template using the standard Go template engine
 func (c *Render) GoPage(w http.ResponseWriter, r *http.Request, view string, data interface{}) error {
 	tmpl, err := template.ParseFiles(fmt.Sprintf("%s/views/%s.page.tmpl", c.RootPath, view))
 	if err != nil {
@@ -56,7 +60,31 @@ func (c *Render) GoPage(w http.ResponseWriter, r *http.Request, view string, dat
 	return nil
 }
 
-func (c *Render) JetPage(w http.ResponseWriter, r *http.Request, view string, data interface{}) error {
+// JetPage renders a template using the Jet template engine
+func (c *Render) JetPage(w http.ResponseWriter, r *http.Request, view string, variables, data interface{}) error {
+	var vars jet.VarMap
+
+	if variables == nil {
+		vars = make(jet.VarMap)
+	} else {
+		vars = variables.(jet.VarMap)
+	}
+
+	td := &TemplateData{}
+	if data != nil {
+		td = data.(*TemplateData)
+	}
+
+	t, err := c.JetViews.GetTemplate(fmt.Sprintf("%s.jet", view))
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	if err = t.Execute(w, vars, td); err != nil {
+		log.Println(err)
+		return err
+	}
 
 	return nil
 }
