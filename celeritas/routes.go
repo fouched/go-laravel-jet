@@ -8,14 +8,18 @@ import (
 
 func (c *Celeritas) routes() http.Handler {
 	mux := chi.NewRouter()
+	addMiddleware(mux, c)
 
+	return mux
+}
+
+func addMiddleware(mux *chi.Mux, c *Celeritas) {
 	mux.Use(middleware.RequestID)
 	mux.Use(middleware.RealIP)
 	mux.Use(middleware.Recoverer)
-
 	if c.Debug {
 		mux.Use(middleware.Logger)
 	}
 
-	return mux
+	mux.Use(c.SessionLoad)
 }
