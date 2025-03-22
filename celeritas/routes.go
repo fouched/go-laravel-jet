@@ -17,9 +17,9 @@ func addMiddleware(mux *chi.Mux, c *Celeritas) {
 	mux.Use(middleware.RequestID)
 	mux.Use(middleware.RealIP)
 	mux.Use(middleware.Recoverer)
-	if c.Debug {
-		mux.Use(middleware.Logger)
-	}
+	//if c.Debug {
+	//	mux.Use(middleware.Logger)
+	//}
 
 	mux.Use(c.SessionLoad)
 }
