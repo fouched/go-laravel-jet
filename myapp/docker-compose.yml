@@ -1,0 +1,44 @@
+#version: '3'
+name: go-laravel-jet
+
+services:
+
+  #  start Postgres, and ensure that data is stored to a mounted volume
+  postgres:
+    image: 'postgres:17.2'
+    container_name: postgres-jet
+    ports:
+      - "5432:5432"
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: celeritas
+    volumes:
+      - ./db-data/postgres/:/var/lib/postgresql/data/
+
+  #  start Redis, and ensure that data is stored to a mounted volume
+  redis:
+    image: 'redis:7.4-alpine'
+    container_name: redis-jet
+    ports:
+      - "6379:6379"
+    restart: always
+    volumes:
+      - ./db-data/redis/:/data
+
+  #  start MariaDB, and ensure that data is stored to a mounted volume
+  mariadb:
+    image: 'mariadb:11.7'
+    container_name: mariadb-jet
+    ports:
+      - "3306:3306"
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: celeritas
+      MYSQL_USER: mariadb
+      MYSQL_PASSWORD: password
+
+    volumes:
+      - ./db-data/mariadb:/var/lib/mysql
