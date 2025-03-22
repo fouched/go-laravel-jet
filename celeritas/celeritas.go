@@ -27,6 +27,7 @@ type Celeritas struct {
 	Routes   *chi.Mux
 	Render   *render.Render
 	Session  *scs.SessionManager
+	DB       Database
 	JetViews *jet.Set
 	config   config // no reason to export this
 }
@@ -36,6 +37,7 @@ type config struct {
 	renderer    string
 	cookie      cookieConfig
 	sessionType string
+	database    databaseConfig
 }
 
 func (c *Celeritas) New(rootPath string) error {
@@ -68,6 +70,20 @@ func (c *Celeritas) New(rootPath string) error {
 	c.Version = version
 	c.RootPath = rootPath
 	c.Routes = c.routes().(*chi.Mux)
+
+	// connect to database if specified
+	if os.Getenv("DATABASE_TYPE") != "" {
+		db, err := c.OpenDB(os.Getenv("DATABASE_TYPE"), c.BuildDSN())
+		//TODO: build in retry
+		if err != nil {
+			errorLog.Println(err)
+			os.Exit(1)
+		}
+		c.DB = Database{
+			Type: os.Getenv("DATABASE_TYPE"),
+			Pool: db,
+		}
+	}
 
 	// setup config
 	c.config = config{
@@ -160,4 +176,24 @@ func (c *Celeritas) createRenderer() {
 		JetViews: c.JetViews,
 	}
 	c.Render = &myRenderer
+}
+
+func (c *Celeritas) BuildDSN() string {
+	var dsn string
+
+	switch os.Getenv("DATABASE_TYPE") {
+	case "postgres", "postgresql":
+		dsn = fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=%s timezone=UTC connect_timeout=5",
+			os.Getenv("DATABASE_HOST"),
+			os.Getenv("DATABASE_PORT"),
+			os.Getenv("DATABASE_USER"),
+			os.Getenv("DATABASE_NAME"),
+			os.Getenv("DATABASE_SSL_MODE"),
+		)
+		if os.Getenv("DATABASE_PASS") != "" {
+			dsn = fmt.Sprintf("%s password=%s", dsn, os.Getenv("DATABASE_PASS"))
+		}
+	}
+
+	return dsn
 }
