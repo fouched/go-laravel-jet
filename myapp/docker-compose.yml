@@ -9,7 +9,7 @@ services:
     container_name: postgres-jet
     ports:
       - "5432:5432"
-    restart: always
+    restart: no
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -23,7 +23,7 @@ services:
     container_name: redis-jet
     ports:
       - "6379:6379"
-    restart: always
+    restart: no
     volumes:
       - ./db-data/redis/:/data
 
@@ -33,7 +33,7 @@ services:
     container_name: mariadb-jet
     ports:
       - "3306:3306"
-    restart: always
+    restart: no
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: celeritas
