@@ -158,7 +158,7 @@ func (u *User) ResetPassword(id int, password string) error {
 	return nil
 }
 
-func (u *User) PasswordMatched(plainText string) (bool, error) {
+func (u *User) PasswordMatches(plainText string) (bool, error) {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(plainText))
 	if err != nil {
 		switch {

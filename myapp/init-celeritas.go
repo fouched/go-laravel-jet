@@ -32,7 +32,10 @@ func initApplication() *application {
 
 	// set application routes to celeritas routes
 	app.App.Routes = app.routes()
+
+	// set the models
 	app.Models = data.New(app.App.DB.Pool)
+	myHandlers.Models = app.Models
 
 	return app
 }

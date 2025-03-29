@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/CloudyKit/jet/v6"
+	"github.com/alexedwards/scs/v2"
 	"html/template"
 	"log"
 	"net/http"
@@ -17,6 +18,7 @@ type Render struct {
 	Port       string
 	ServerName string
 	JetViews   *jet.Set
+	Session    *scs.SessionManager
 }
 
 type TemplateData struct {
@@ -42,6 +44,18 @@ func (c *Render) Page(w http.ResponseWriter, r *http.Request, view string, varia
 	return errors.New("no rendering engine specified")
 }
 
+func (c *Render) defaultData(td *TemplateData, r *http.Request) *TemplateData {
+
+	td.Secure = c.Secure
+	td.ServerName = c.ServerName
+	td.Port = c.Port
+
+	if c.Session.Exists(r.Context(), "userID") {
+		td.IsAuthenticated = true
+	}
+	return td
+}
+
 // GoPage renders a template using the standard Go template engine
 func (c *Render) GoPage(w http.ResponseWriter, r *http.Request, view string, data interface{}) error {
 	tmpl, err := template.ParseFiles(fmt.Sprintf("%s/views/%s.page.tmpl", c.RootPath, view))
@@ -53,6 +67,7 @@ func (c *Render) GoPage(w http.ResponseWriter, r *http.Request, view string, dat
 	if data != nil {
 		td = data.(*TemplateData)
 	}
+	td = c.defaultData(td, r)
 
 	err = tmpl.Execute(w, &td)
 	if err != nil {
@@ -76,6 +91,7 @@ func (c *Render) JetPage(w http.ResponseWriter, r *http.Request, view string, va
 	if data != nil {
 		td = data.(*TemplateData)
 	}
+	td = c.defaultData(td, r)
 
 	t, err := c.JetViews.GetTemplate(fmt.Sprintf("%s.jet", view))
 	if err != nil {
