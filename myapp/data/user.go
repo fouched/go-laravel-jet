@@ -81,7 +81,7 @@ func getUserToken(userID int) (*Token, error) {
 	rs := collection.Find(
 		up.Cond{
 			"user_id =": userID,
-			"expiry <":  time.Now(),
+			"expiry >":  time.Now(),
 		}).OrderBy("created_at desc")
 
 	err := rs.One(&token)
