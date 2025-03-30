@@ -3,14 +3,14 @@ package data
 import (
 	"database/sql"
 	"fmt"
-	upperdb "github.com/upper/db/v4"
+	up "github.com/upper/db/v4"
 	"github.com/upper/db/v4/adapter/mysql"
 	"github.com/upper/db/v4/adapter/postgresql"
 	"os"
 )
 
 var db *sql.DB
-var upper upperdb.Session
+var upper up.Session
 
 // Models any models created here (and in the New function)
 // are easily accessible throughout the entire application
@@ -34,7 +34,7 @@ func New(databasePool *sql.DB) Models {
 	}
 }
 
-func getInsertID(i upperdb.ID) int {
+func getInsertID(i up.ID) int {
 	idType := fmt.Sprintf("%T", i)
 	if idType == "int64" {
 		return int(i.(int64))
