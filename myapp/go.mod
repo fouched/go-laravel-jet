@@ -15,6 +15,7 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/CloudyKit/fastprinter v0.0.0-20200109182630-33d98a066a53 // indirect
+	github.com/DATA-DOG/go-sqlmock v1.5.2 // indirect
 	github.com/alexedwards/scs/v2 v2.8.0 // indirect
 	github.com/go-sql-driver/mysql v1.9.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
