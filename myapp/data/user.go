@@ -16,7 +16,7 @@ type User struct {
 	Password  string    `db:"password"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
-	Token     *Token    `db:"-"`
+	Token     Token     `db:"-"`
 }
 
 // Table allows specifying a custom table name for the model
@@ -47,11 +47,12 @@ func (u *User) GetByEmail(email string) (*User, error) {
 		return nil, err
 	}
 
-	token, err := getUserToken(user.ID)
+	err = setUserToken(&user)
 	if err != nil {
-		return nil, err
+		if !errors.Is(err, up.ErrNilRecord) && !errors.Is(err, up.ErrNoMoreRows) {
+			return nil, err
+		}
 	}
-	user.Token = token
 
 	return &user, nil
 }
@@ -66,32 +67,33 @@ func (u *User) Get(id int) (*User, error) {
 		return nil, err
 	}
 
-	token, err := getUserToken(user.ID)
+	err = setUserToken(&user)
 	if err != nil {
-		return nil, err
+		if !errors.Is(err, up.ErrNilRecord) && !errors.Is(err, up.ErrNoMoreRows) {
+			return nil, err
+		}
 	}
-	user.Token = token
 
 	return &user, nil
 }
 
-func getUserToken(userID int) (*Token, error) {
+func setUserToken(user *User) error {
 	var token Token
 	collection := upper.Collection(token.Table())
 	rs := collection.Find(
 		up.Cond{
-			"user_id =": userID,
+			"user_id =": user.ID,
 			"expiry >":  time.Now(),
 		}).OrderBy("created_at desc")
 
 	err := rs.One(&token)
 	if err != nil {
-		if !errors.Is(err, up.ErrNilRecord) || !errors.Is(err, up.ErrNoMoreRows) {
-			return nil, err
-		}
+		return err
 	}
 
-	return &token, nil
+	user.Token = token
+
+	return nil
 }
 
 func (u *User) Update(user User) error {

@@ -45,7 +45,7 @@ func (t *Token) GetUserForToken(token string) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	u.Token = &theToken
+	u.Token = theToken
 
 	return &u, nil
 }
