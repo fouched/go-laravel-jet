@@ -3,6 +3,12 @@
 // to run test, myapp/data command:
 // go test . --tags integration --count=1
 // go test -cover . --tags integration
+//
+// visual:
+//		go test -coverprofile=coverage.out . --tags integration
+//		go tool cover -html=coverage.out
+//
+// test run top to bottom in the file
 
 package data
 
@@ -14,6 +20,7 @@ import (
 	"log"
 	"os"
 	"testing"
+	"time"
 )
 
 var (
@@ -162,7 +169,8 @@ CREATE TRIGGER set_timestamp
     BEFORE UPDATE ON tokens
     FOR EACH ROW
     EXECUTE PROCEDURE trigger_set_timestamp();
-	`
+`
+
 	_, err := db.Exec(stmt)
 	if err != nil {
 		return err
@@ -237,4 +245,146 @@ func TestUser_Update(t *testing.T) {
 		t.Error("last name not updated in database")
 	}
 
+}
+
+func TestUser_PasswordMatches(t *testing.T) {
+	u, err := models.Users.Get(1)
+	if err != nil {
+		t.Error("failed to get user: ", err)
+	}
+
+	matches, err := u.PasswordMatches("password")
+	if err != nil {
+		t.Error("error checking match: ", err)
+	}
+
+	if !matches {
+		t.Error("password does not match when it should")
+	}
+
+	matches, err = u.PasswordMatches("123")
+	if err != nil {
+		t.Error("error checking match: ", err)
+	}
+
+	if matches {
+		t.Error("password matches when it should not")
+	}
+}
+
+func TestUser_ResetPassword(t *testing.T) {
+	err := models.Users.ResetPassword(1, "new_password")
+	if err != nil {
+		t.Error("error restting password: ", err)
+	}
+
+	err = models.Users.ResetPassword(2, "new_password")
+	if err == nil {
+		t.Error("did not get an error when trying to reset password for non-existent user")
+	}
+}
+
+func TestUser_Delete(t *testing.T) {
+	err := models.Users.Delete(1)
+	if err != nil {
+		t.Error("failed to delete user: ", err)
+	}
+
+	_, err = models.Users.Get(1)
+	if err == nil {
+		t.Error("retrieved user that was deleted")
+	}
+}
+
+func TestToken_Table(t *testing.T) {
+	s := models.Tokens.Table()
+	if s != "tokens" {
+		t.Error("wrong table name returned for tokens")
+	}
+}
+func TestToken_GenerateToken(t *testing.T) {
+	id, err := models.Users.Insert(dummyUser)
+	if err != nil {
+		t.Error("error inserting user: ", err)
+	}
+
+	_, err = models.Tokens.GenerateToken(id, time.Hour*24*365)
+	if err != nil {
+		t.Error("error generating token: ", err)
+	}
+}
+
+func TestToken_Insert(t *testing.T) {
+	u, err := models.Users.GetByEmail(dummyUser.Email)
+	if err != nil {
+		t.Error("failed to get user")
+	}
+
+	token, err := models.Tokens.GenerateToken(u.ID, time.Hour*24*365)
+	if err != nil {
+		t.Error("error generating token: ", err)
+	}
+
+	err = models.Tokens.Insert(*token, *u)
+	if err != nil {
+		t.Error("error inserting token")
+	}
+}
+
+func TestToken_GetUserForToken(t *testing.T) {
+	token := "abc"
+	_, err := models.Tokens.GetUserForToken(token)
+	if err == nil {
+		t.Error("error expected but not received getting user for a  bad token")
+	}
+
+	u, err := models.Users.GetByEmail(dummyUser.Email)
+	if err != nil {
+		t.Error("failed to get user")
+	}
+
+	_, err = models.Tokens.GetUserForToken(u.Token.PlainText)
+	if err != nil {
+		t.Error("failed to get user with valid token: ", err)
+	}
+}
+
+func TestToken_GetTokensForUser(t *testing.T) {
+	tokens, err := models.Tokens.GetTokensForUser(1)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(tokens) > 0 {
+		t.Error("token returned for user that does not exist")
+	}
+}
+
+func TestToken_Get(t *testing.T) {
+	u, err := models.Users.GetByEmail(dummyUser.Email)
+	if err != nil {
+		t.Error("failed to get user")
+	}
+
+	_, err = models.Tokens.Get(u.Token.ID)
+	if err != nil {
+		t.Error("error getting token by id: ", err)
+	}
+}
+
+func TestToken_GetByToken(t *testing.T) {
+	u, err := models.Users.GetByEmail(dummyUser.Email)
+	if err != nil {
+		t.Error("failed to get user")
+	}
+
+	_, err = models.Tokens.GetByToken(u.Token.PlainText)
+	if err != nil {
+		t.Error("error getting token by token: ", err)
+	}
+
+	_, err = models.Tokens.GetByToken("123")
+	if err == nil {
+		t.Error("error getting non-existent token by token: ", err)
+	}
 }
