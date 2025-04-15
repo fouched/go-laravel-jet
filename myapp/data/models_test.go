@@ -9,7 +9,6 @@ import (
 )
 
 func TestNew(t *testing.T) {
-
 	fakeDB, _, _ := sqlmock.New()
 	defer fakeDB.Close()
 

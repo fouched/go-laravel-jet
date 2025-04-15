@@ -12,7 +12,7 @@ import (
 )
 
 type Token struct {
-	ID        int       `db:"id" json:"id"`
+	ID        int       `db:"id,omitempty" json:"id"`
 	UserID    int       `db:"user_id" json:"user_id"`
 	FirstName string    `db:"first_name" json:"first_name"`
 	Email     string    `db:"email" json:"email"`
@@ -28,7 +28,6 @@ func (t *Token) Table() string {
 }
 
 func (t *Token) GetUserForToken(token string) (*User, error) {
-
 	var u User
 	var theToken Token
 
@@ -51,7 +50,6 @@ func (t *Token) GetUserForToken(token string) (*User, error) {
 }
 
 func (t *Token) GetTokensForUser(id int) ([]*Token, error) {
-
 	var tokens []*Token
 	collection := upper.Collection(t.Table())
 	rs := collection.Find(up.Cond{"user_id": id})
@@ -64,7 +62,6 @@ func (t *Token) GetTokensForUser(id int) ([]*Token, error) {
 }
 
 func (t *Token) Get(id int) (*Token, error) {
-
 	var token Token
 	collection := upper.Collection(t.Table())
 	rs := collection.Find(up.Cond{"id": id})
@@ -77,7 +74,6 @@ func (t *Token) Get(id int) (*Token, error) {
 }
 
 func (t *Token) GetByToken(plainText string) (*Token, error) {
-
 	var token Token
 	collection := upper.Collection(t.Table())
 	rs := collection.Find(up.Cond{"token": plainText})
@@ -90,7 +86,6 @@ func (t *Token) GetByToken(plainText string) (*Token, error) {
 }
 
 func (t *Token) DeleteById(id int) error {
-
 	collection := upper.Collection(t.Table())
 	rs := collection.Find(id)
 	err := rs.Delete()
@@ -102,7 +97,6 @@ func (t *Token) DeleteById(id int) error {
 }
 
 func (t *Token) DeleteByToken(plainText string) error {
-
 	collection := upper.Collection(t.Table())
 	rs := collection.Find(up.Cond{"token": plainText})
 	err := rs.Delete()
@@ -114,7 +108,6 @@ func (t *Token) DeleteByToken(plainText string) error {
 }
 
 func (t *Token) Insert(token Token, u User) error {
-
 	collection := upper.Collection(t.Table())
 
 	// delete existing tokens
@@ -136,7 +129,6 @@ func (t *Token) Insert(token Token, u User) error {
 }
 
 func (t *Token) GenerateToken(userId int, ttl time.Duration) (*Token, error) {
-
 	token := &Token{
 		UserID:  userId,
 		Expires: time.Now().Add(ttl),
@@ -156,7 +148,6 @@ func (t *Token) GenerateToken(userId int, ttl time.Duration) (*Token, error) {
 }
 
 func (t *Token) AuthenticateToken(r *http.Request) (*User, error) {
-
 	authorizationHeader := r.Header.Get("Authorization")
 	if authorizationHeader == "" {
 		return nil, errors.New("no authorization header received")
@@ -192,7 +183,6 @@ func (t *Token) AuthenticateToken(r *http.Request) (*User, error) {
 }
 
 func (t *Token) ValidToken(token string) (bool, error) {
-
 	user, err := t.GetUserForToken(token)
 	if err != nil {
 		return false, errors.New("no matching user found")
