@@ -24,6 +24,10 @@ go.work.sum
 # env file
 .env
 
+# executable
+/myapp/celeritas
+/myapp/celeritas.exe
+
 .idea
 myapp/db-data
 tmp
