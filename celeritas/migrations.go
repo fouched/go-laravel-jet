@@ -17,7 +17,7 @@ func (c *Celeritas) MigrateUp(dsn string) error {
 	}
 	defer m.Close()
 
-	if err = m.Up(); err != nil {
+	if err := m.Up(); err != nil {
 		log.Println("error running migration: ", err)
 		return err
 	}
