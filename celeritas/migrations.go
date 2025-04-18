@@ -3,6 +3,7 @@ package celeritas
 import (
 	"github.com/golang-migrate/migrate/v4"
 	"log"
+	"path/filepath"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
@@ -11,7 +12,8 @@ import (
 )
 
 func (c *Celeritas) MigrateUp(dsn string) error {
-	m, err := migrate.New("file://"+c.RootPath+"/migrations", dsn)
+	rootPath := filepath.ToSlash(c.RootPath)
+	m, err := migrate.New("file://"+rootPath+"/migrations", dsn)
 	if err != nil {
 		return err
 	}
@@ -26,7 +28,8 @@ func (c *Celeritas) MigrateUp(dsn string) error {
 }
 
 func (c *Celeritas) MigrateDownAll(dsn string) error {
-	m, err := migrate.New("file://"+c.RootPath+"/migrations", dsn)
+	rootPath := filepath.ToSlash(c.RootPath)
+	m, err := migrate.New("file://"+rootPath+"/migrations", dsn)
 	if err != nil {
 		return err
 	}
@@ -40,7 +43,8 @@ func (c *Celeritas) MigrateDownAll(dsn string) error {
 }
 
 func (c *Celeritas) Steps(n int, dsn string) error {
-	m, err := migrate.New("file://"+c.RootPath+"/migrations", dsn)
+	rootPath := filepath.ToSlash(c.RootPath)
+	m, err := migrate.New("file://"+rootPath+"/migrations", dsn)
 	if err != nil {
 		return err
 	}
@@ -54,7 +58,8 @@ func (c *Celeritas) Steps(n int, dsn string) error {
 }
 
 func (c *Celeritas) MigrateForce(dsn string) error {
-	m, err := migrate.New("file://"+c.RootPath+"/migrations", dsn)
+	rootPath := filepath.ToSlash(c.RootPath)
+	m, err := migrate.New("file://"+rootPath+"/migrations", dsn)
 	if err != nil {
 		return err
 	}
