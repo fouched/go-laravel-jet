@@ -13,7 +13,7 @@ func doAuth() error {
 	upFile := cel.RootPath + "/migrations/" + fileName + ".up.sql"
 	downFile := cel.RootPath + "/migrations/" + fileName + ".down.sql"
 
-	err := copyFileFromTemplate("templates/migrations/auth_tables."+dbType+".sql", upFile)
+	err := copyFileFromTemplate("templates/migrations/auth-tables."+dbType+".sql", upFile)
 	if err != nil {
 		exitGracefully(err)
 	}
