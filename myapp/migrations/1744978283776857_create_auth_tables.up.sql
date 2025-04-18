@@ -1,8 +1,8 @@
 CREATE OR REPLACE FUNCTION trigger_set_timestamp()
-RETURNS TRIGGER AS $$
+    RETURNS TRIGGER AS $$
 BEGIN
-  NEW.updated_at = NOW();
-RETURN NEW;
+    NEW.updated_at = NOW();
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -22,7 +22,7 @@ CREATE TABLE users (
 CREATE TRIGGER set_timestamp
     BEFORE UPDATE ON users
     FOR EACH ROW
-    EXECUTE PROCEDURE trigger_set_timestamp();
+EXECUTE PROCEDURE trigger_set_timestamp();
 
 drop table if exists remember_tokens;
 
@@ -37,7 +37,7 @@ CREATE TABLE remember_tokens (
 CREATE TRIGGER set_timestamp
     BEFORE UPDATE ON remember_tokens
     FOR EACH ROW
-    EXECUTE PROCEDURE trigger_set_timestamp();
+EXECUTE PROCEDURE trigger_set_timestamp();
 
 drop table if exists tokens;
 
@@ -56,4 +56,4 @@ CREATE TABLE tokens (
 CREATE TRIGGER set_timestamp
     BEFORE UPDATE ON tokens
     FOR EACH ROW
-    EXECUTE PROCEDURE trigger_set_timestamp();
+EXECUTE PROCEDURE trigger_set_timestamp();
