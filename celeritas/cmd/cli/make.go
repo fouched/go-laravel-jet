@@ -57,7 +57,33 @@ func doMake(arg2, arg3 string) error {
 		if err != nil {
 			exitGracefully(err)
 		}
-		
+	case "model":
+		if arg3 == "" {
+			exitGracefully(errors.New("you must give the model a name"))
+		}
+
+		data, err := templateFS.ReadFile("templates/data/model.go.txt")
+		if err != nil {
+			exitGracefully(err)
+		}
+
+		model := string(data)
+		var modelName = arg3
+		var tableName = arg3
+
+		fileName := cel.RootPath + "/data/" + strings.ToLower(modelName) + ".go"
+		if fileExists(fileName) {
+			exitGracefully(errors.New("file " + fileName + " already exists"))
+		}
+
+		model = strings.ReplaceAll(model, "$MODELNAME$", strcase.ToCamel(modelName))
+		model = strings.ReplaceAll(model, "$TABLENAME$", tableName)
+
+		err = copyDataToFile([]byte(model), fileName)
+		if err != nil {
+			exitGracefully(err)
+		}
+
 	}
 
 	return nil
