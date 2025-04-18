@@ -5,6 +5,7 @@ import (
 	"log"
 	"myapp/data"
 	"myapp/handlers"
+	"myapp/middleware"
 	"os"
 )
 
@@ -23,11 +24,16 @@ func initApplication() *application {
 
 	cel.AppName = "myapp"
 
+	myMiddleware := &middleware.Middleware{
+		App: cel,
+	}
+
 	myHandlers := &handlers.Handlers{App: cel}
 
 	app := &application{
-		App:      cel,
-		Handlers: myHandlers,
+		App:        cel,
+		Handlers:   myHandlers,
+		Middleware: myMiddleware,
 	}
 
 	// set application routes to celeritas routes
@@ -36,6 +42,7 @@ func initApplication() *application {
 	// set the models
 	app.Models = data.New(app.App.DB.Pool)
 	myHandlers.Models = app.Models
+	app.Middleware.Models = app.Models
 
 	return app
 }

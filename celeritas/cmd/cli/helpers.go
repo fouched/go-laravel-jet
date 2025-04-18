@@ -57,10 +57,11 @@ func getDSN() string {
 func showHelp() {
 	color.Yellow(`Available commands:
     help                     - show help
-    version                  - print version 
+    version                  - print version
+    make auth                - creates authentication tables, models and middleware
+    make migration <name>    - creates new up and down migrations
     migrate                  - runs all up migrations
     migrate down             - reverses most recent migration
     migrate reset            - runs all down migrations, then all up migrations
-    make migration <name>    - creates new up and down migrations
     `)
 }
