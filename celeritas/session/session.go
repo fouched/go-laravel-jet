@@ -1,6 +1,9 @@
 package session
 
 import (
+	"database/sql"
+	"github.com/alexedwards/scs/mysqlstore"
+	"github.com/alexedwards/scs/postgresstore"
 	"github.com/alexedwards/scs/v2"
 	"net/http"
 	"strconv"
@@ -15,37 +18,41 @@ type Session struct {
 	CookieName     string
 	CookieDomain   string
 	SessionType    string
+	DBPool         *sql.DB
 }
 
-func (c *Session) InitSession() *scs.SessionManager {
+func (s *Session) InitSession() *scs.SessionManager {
 	var persist, secure bool
 
 	// how long should sessions last
-	minutes, err := strconv.Atoi(c.CookieLifetime)
+	minutes, err := strconv.Atoi(s.CookieLifetime)
 	if err != nil {
 		minutes = 60
 	}
 
 	// should cookies persist
-	persist = strings.ToLower(c.CookiePersist) == "true"
+	persist = strings.ToLower(s.CookiePersist) == "true"
 
 	// must cookies be secure
-	secure = strings.ToLower(c.CookieSecure) == "true"
+	secure = strings.ToLower(s.CookieSecure) == "true"
 
 	// create session
 	session := scs.New()
 	session.Lifetime = time.Duration(minutes) * time.Minute
 	session.Cookie.Persist = persist
-	session.Cookie.Name = c.CookieName
+	session.Cookie.Name = s.CookieName
 	session.Cookie.Secure = secure
-	session.Cookie.Domain = c.CookieDomain
+	session.Cookie.Domain = s.CookieDomain
 	session.Cookie.SameSite = http.SameSiteLaxMode
 
 	// which session store
-	switch strings.ToLower(c.SessionType) {
+	switch strings.ToLower(s.SessionType) {
 	case "redis":
 	case "mysql", "mariadb":
+		session.Store = mysqlstore.New(s.DBPool)
 	case "postgres", "postgresql":
+		// we are using postgresstore, but c.DBPool contains the optimized pqx driver connection
+		session.Store = postgresstore.New(s.DBPool)
 	default:
 		// cookie
 	}

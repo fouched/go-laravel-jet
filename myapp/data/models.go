@@ -25,6 +25,7 @@ func New(databasePool *sql.DB) Models {
 	if os.Getenv("DATABASE_TYPE") == "mysql" || os.Getenv("DATABASE_TYPE") == "mariadb" {
 		upper, _ = mysql.New(db)
 	} else {
+		// we are using postgresql, but databasePool uses the newer optimized pqx driver connection
 		upper, _ = postgresql.New(db)
 	}
 
