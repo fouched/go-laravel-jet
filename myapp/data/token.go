@@ -131,7 +131,7 @@ func (t *Token) Insert(token Token, u User) error {
 func (t *Token) GenerateToken(userId int, ttl time.Duration) (*Token, error) {
 	token := &Token{
 		UserID:  userId,
-		Expires: time.Now().Add(ttl),
+		Expires: time.Now().UTC().Add(ttl), // Use UTC, DB set to not use timezone - it is the right thing to do
 	}
 
 	randomBytes := make([]byte, 16)

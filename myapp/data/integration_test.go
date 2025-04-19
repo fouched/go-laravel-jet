@@ -448,10 +448,8 @@ func TestToken_ExpiredToken(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-
-	// time.Hour uses local time, while the token uses time.Now() which stored in UTC,
-	// so ensure that an expired token is generated
-	token, err := models.Tokens.GenerateToken(u.ID, 12*-time.Hour)
+	
+	token, err := models.Tokens.GenerateToken(u.ID, 1*-time.Hour)
 	if err != nil {
 		t.Error(err)
 	}
@@ -497,7 +495,7 @@ func TestToken_BadHeader(t *testing.T) {
 		t.Error(err)
 	}
 
-	token, err := models.Tokens.GenerateToken(id, 12*time.Hour)
+	token, err := models.Tokens.GenerateToken(id, 1*time.Hour)
 	if err != nil {
 		t.Error(err)
 	}
