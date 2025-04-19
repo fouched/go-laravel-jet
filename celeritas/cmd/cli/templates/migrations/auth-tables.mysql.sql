@@ -17,7 +17,7 @@ CREATE TABLE `users` (
 drop table if exists remember_tokens cascade;
 
 CREATE TABLE `remember_tokens` (
-                                   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
     `user_id` int(10) unsigned NOT NULL,
     `remember_token` varchar(100) NOT NULL DEFAULT '',
     `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
