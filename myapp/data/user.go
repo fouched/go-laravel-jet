@@ -2,8 +2,10 @@ package data
 
 import (
 	"errors"
+	"github.com/fouched/celeritas"
 	up "github.com/upper/db/v4"
 	"golang.org/x/crypto/bcrypt"
+	"strings"
 	"time"
 )
 
@@ -22,6 +24,16 @@ type User struct {
 // Table allows specifying a custom table name for the model
 func (u *User) Table() string {
 	return "users"
+}
+
+func (u *User) Validate(validator *celeritas.Validation) {
+	validator.Check(strings.TrimSpace(u.LastName) != "", "last_name", "Last name is required")
+	validator.Check(strings.TrimSpace(u.FirstName) != "", "first_name", "First name is required")
+	validator.IsEmail(celeritas.Field{
+		Name:  "email",
+		Label: "Email",
+		Value: strings.TrimSpace(u.Email),
+	})
 }
 
 func (u *User) GetAll() ([]*User, error) {
