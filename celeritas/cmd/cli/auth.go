@@ -56,7 +56,6 @@ func doAuth() error {
 	color.Yellow("  - auth middleware created")
 	color.Yellow("")
 	color.Yellow("  - Don't forget to add user and token models in data/models.go, and to add appropriate middleware to your routes!")
-	color.Yellow("  - ")
 
 	return nil
 }

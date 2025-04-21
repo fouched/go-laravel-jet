@@ -1,11 +1,28 @@
 package celeritas
 
 import (
-	"github.com/fouched/toolkit/v2"
+	"encoding/json"
 	"net/http"
 )
 
 func (c *Celeritas) WriteJSON(w http.ResponseWriter, status int, data interface{}, headers ...http.Header) error {
-	var t toolkit.Tools
-	return t.WriteJSON(w, status, data, headers...)
+	// in production, we would noy use indent
+	out, err := json.MarshalIndent(data, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	if len(headers) > 0 {
+		for key, value := range headers[0] {
+			w.Header()[key] = value
+		}
+	}
+
+	w.Header().Set("Content-Type", "application-json")
+	w.WriteHeader(status)
+	_, err = w.Write(out)
+	if err != nil {
+		return err
+	}
+	return nil
 }
