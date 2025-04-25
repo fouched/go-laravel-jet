@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/iancoleman/strcase"
 	"os"
 	"strings"
@@ -11,6 +12,9 @@ import (
 
 func doMake(arg2, arg3 string) error {
 	switch arg2 {
+	case "key":
+		rnd := cel.RandomString(32)
+		color.Yellow("32 character encryption key: %s", rnd)
 	case "migration":
 		dbType := cel.DB.Type
 		if arg3 == "" {

@@ -15,7 +15,7 @@ Sessions
             <img src="/public/images/celeritas.jpg" class="mb-5" style="width: 100px;height:auto;">
             <h1>Celeritas</h1>
             <hr>
-            <small class="text-muted">This value came from the session: {{foo}}</small>
+            <small class="text-muted">This value came from the session: <b>{{foo}}</b></small>
         </div>
     </div>
 

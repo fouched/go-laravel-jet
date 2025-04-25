@@ -3,8 +3,8 @@ SHELL=cmd.exe
 
 ## build: builds all binaries
 build:
-# 	can use vendor below for local copy, but that is only really required in VS Code...
-#    @go mod vendor
+# 	can use vendor below to store and update local copy of dependencies
+	@go mod vendor
 	@go build -o tmp/${BINARY_NAME} .
 	@echo Celeritas built!
 
