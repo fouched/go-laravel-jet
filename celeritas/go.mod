@@ -20,6 +20,7 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/CloudyKit/fastprinter v0.0.0-20200109182630-33d98a066a53 // indirect
+	github.com/alexedwards/scs/redisstore v0.0.0-20250417082927-ab20b3feb5e9 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
 	github.com/alicebob/miniredis/v2 v2.34.0 // indirect
 	github.com/gomodule/redigo v1.9.2 // indirect

@@ -22,6 +22,8 @@ github.com/alexedwards/scs/pgxstore v0.0.0-20250417082927-ab20b3feb5e9 h1:waHKgI
 github.com/alexedwards/scs/pgxstore v0.0.0-20250417082927-ab20b3feb5e9/go.mod h1:hwveArYcjyOK66EViVgVU5Iqj7zyEsWjKXMQhDJrTLI=
 github.com/alexedwards/scs/postgresstore v0.0.0-20250417082927-ab20b3feb5e9 h1:FGBhs+LG4w1y511QLcuLr1xfhI7Fbyq6Da1TCf6EQq4=
 github.com/alexedwards/scs/postgresstore v0.0.0-20250417082927-ab20b3feb5e9/go.mod h1:TDDdV/xnjj+/4zBQ9a2k+i2AbuAdY7SQjPUh5zoTZ3M=
+github.com/alexedwards/scs/redisstore v0.0.0-20250417082927-ab20b3feb5e9 h1:dZ98pKe7etJ6ZXMxzICDvxf/Ehs5HIXqTaaJ2GAJYpc=
+github.com/alexedwards/scs/redisstore v0.0.0-20250417082927-ab20b3feb5e9/go.mod h1:ceKFatoD+hfHWWeHOAYue1J+XgOJjE7dw8l3JtIRTGY=
 github.com/alexedwards/scs/v2 v2.8.0 h1:h31yUYoycPuL0zt14c0gd+oqxfRwIj6SOjHdKRZxhEw=
 github.com/alexedwards/scs/v2 v2.8.0/go.mod h1:ToaROZxyKukJKT/xLcVQAChi5k6+Pn1Gvmdl7h3RRj8=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
@@ -78,6 +80,7 @@ github.com/golang-migrate/migrate/v4 v4.18.2 h1:2VSCMz7x7mjyTXx3m2zPokOY82LTRgxK
 github.com/golang-migrate/migrate/v4 v4.18.2/go.mod h1:2CM6tJvn2kqPXwnXO/d3rAQYiyoIm180VsO8PRX6Rpk=
 github.com/golang-migrate/migrate/v4 v4.18.3 h1:EYGkoOsvgHHfm5U/naS1RP/6PL/Xv3S4B/swMiAmDLs=
 github.com/golang-migrate/migrate/v4 v4.18.3/go.mod h1:99BKpIi6ruaaXRM1A77eqZ+FWPQ3cfRa+ZVy5bmWMaY=
+github.com/gomodule/redigo v1.8.0/go.mod h1:P9dn9mFrCBvWhGE1wpxx6fgq7BAeLBk+UUUzlpkBYO0=
 github.com/gomodule/redigo v1.9.2 h1:HrutZBLhSIU8abiSfW8pj8mPhOyMYjZT/wcA4/L9L9s=
 github.com/gomodule/redigo v1.9.2/go.mod h1:KsU3hiK/Ay8U42qpaJk+kuNa3C+spxapWpM+ywhcgtw=
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=

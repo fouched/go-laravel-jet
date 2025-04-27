@@ -19,6 +19,8 @@ import (
 
 const version = "1.0.0"
 
+var redisCache *cache.RedisCache
+
 type Celeritas struct {
 	AppName       string
 	Debug         bool
@@ -90,8 +92,8 @@ func (c *Celeritas) New(rootPath string) error {
 		}
 	}
 
-	if os.Getenv("CACHE") == "redis" {
-		redisCache := c.createClientRedisCache()
+	if os.Getenv("CACHE") == "redis" || os.Getenv("SESSION_TYPE") == "redis" {
+		redisCache = c.createClientRedisCache()
 		c.Cache = redisCache
 	}
 
@@ -126,8 +128,15 @@ func (c *Celeritas) New(rootPath string) error {
 		CookieName:     c.config.cookie.name,
 		CookieDomain:   c.config.cookie.domain,
 		SessionType:    c.config.sessionType,
-		DBPool:         c.DB.Pool,
 	}
+
+	switch c.config.sessionType {
+	case "redis":
+		s.RedisPool = redisCache.Conn
+	case "mysql", "mariadb", "postgres", "postgresql":
+		s.DBPool = c.DB.Pool
+	}
+
 	c.Session = s.InitSession()
 	c.EncryptionKey = os.Getenv("KEY")
 
