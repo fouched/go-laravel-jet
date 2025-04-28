@@ -22,4 +22,5 @@ func addMiddleware(mux *chi.Mux, c *Celeritas) {
 	//}
 
 	mux.Use(c.SessionLoad)
+	mux.Use(c.NoSurf)
 }
