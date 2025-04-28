@@ -6,6 +6,7 @@ import (
 	"github.com/fouched/celeritas"
 	"myapp/data"
 	"net/http"
+	"time"
 )
 
 type Handlers struct {
@@ -14,6 +15,8 @@ type Handlers struct {
 }
 
 func (h *Handlers) Home(w http.ResponseWriter, r *http.Request) {
+	defer h.App.LoadTime(time.Now())
+
 	//err := h.App.Render.Page(w, r, "home", nil, nil)
 	// using convenience func
 	err := h.render(w, r, "home", nil, nil)
