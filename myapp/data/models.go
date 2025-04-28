@@ -22,11 +22,13 @@ type Models struct {
 func New(databasePool *sql.DB) Models {
 	db = databasePool
 
-	if os.Getenv("DATABASE_TYPE") == "mysql" || os.Getenv("DATABASE_TYPE") == "mariadb" {
+	switch os.Getenv("DATABASE_TYPE") {
+	case "mysql", "mariadb":
 		upper, _ = mysql.New(db)
-	} else {
-		// we are using postgresql, but databasePool uses the newer optimized pqx driver connection
+	case "postgres", "postgresql":
 		upper, _ = postgresql.New(db)
+	default:
+		//do nothing - maybe use sql lite ?
 	}
 
 	return Models{
