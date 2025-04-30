@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/CloudyKit/jet/v6"
 	"github.com/alexedwards/scs/v2"
+	"github.com/dgraph-io/badger/v4"
 	"github.com/fouched/celeritas/cache"
 	"github.com/fouched/celeritas/render"
 	"github.com/fouched/celeritas/session"
@@ -20,6 +21,9 @@ import (
 const version = "1.0.0"
 
 var redisCache *cache.RedisCache
+var redisPool *redis.Pool
+var badgerCache *cache.BadgerCache
+var badgerConn *badger.DB
 
 type Celeritas struct {
 	AppName       string
@@ -95,6 +99,19 @@ func (c *Celeritas) New(rootPath string) error {
 	if os.Getenv("CACHE") == "redis" || os.Getenv("SESSION_TYPE") == "redis" {
 		redisCache = c.createClientRedisCache()
 		c.Cache = redisCache
+		redisPool = redisCache.Conn
+	}
+
+	if os.Getenv("CACHE") == "badger" {
+		badgerCache = c.createClientBadgerCache()
+		c.Cache = badgerCache
+		badgerConn = badgerCache.Conn
+
+		go func() {
+			for range time.Tick(12 * time.Hour) {
+				_ = badgerCache.Conn.RunValueLogGC(0.7)
+			}
+		}()
 	}
 
 	// setup config
@@ -182,7 +199,17 @@ func (c *Celeritas) ListenAndServe() {
 		WriteTimeout: 600 * time.Second,
 	}
 
-	defer c.DB.Pool.Close()
+	if c.DB.Pool != nil {
+		defer c.DB.Pool.Close()
+	}
+
+	if redisPool != nil {
+		defer redisPool.Close()
+	}
+
+	if badgerConn != nil {
+		defer badgerConn.Close()
+	}
 
 	c.InfoLog.Printf("Listening on port %s", os.Getenv("PORT"))
 	err := srv.ListenAndServe()
@@ -236,6 +263,23 @@ func (c *Celeritas) BuildDSN() string {
 	}
 
 	return dsn
+}
+
+func (c *Celeritas) createClientBadgerCache() *cache.BadgerCache {
+	cacheClient := cache.BadgerCache{
+		Conn: c.createBadgerConn(),
+	}
+
+	return &cacheClient
+}
+
+func (c *Celeritas) createBadgerConn() *badger.DB {
+	db, err := badger.Open(badger.DefaultOptions(c.RootPath + "/tmp/badger"))
+
+	if err != nil {
+		return nil
+	}
+	return db
 }
 
 func (c *Celeritas) createClientRedisCache() *cache.RedisCache {
