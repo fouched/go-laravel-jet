@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/fouched/celeritas/mailer"
 	"github.com/go-chi/chi/v5"
 	"myapp/data"
 	"net/http"
@@ -37,6 +38,29 @@ func (a *application) routes() *chi.Mux {
 	a.post("/api/get-from-cache", a.Handlers.GetFromCache)
 	a.post("/api/delete-from-cache", a.Handlers.DeleteFromCache)
 	a.post("/api/empty-cache", a.Handlers.EmptyCache)
+
+	a.get("/test-mail", func(w http.ResponseWriter, r *http.Request) {
+		msg := mailer.Message{
+			From:        "me@here.com",
+			To:          "you@there.com",
+			Subject:     "Test using channel",
+			Template:    "test",
+			Attachments: nil,
+			Data:        nil,
+		}
+
+		//a.App.Mail.Jobs <- msg
+		//res := <-a.App.Mail.Results
+		//if res.Error != nil {
+		//	a.App.ErrorLog.Println(res.Error)
+		//}
+
+		msg.Subject = "Test using direct call"
+		err := a.App.Mail.SendSMTPMessage(msg)
+		if err != nil {
+			a.App.ErrorLog.Println(err)
+		}
+	})
 
 	a.get("/create-user", func(w http.ResponseWriter, r *http.Request) {
 		u := data.User{

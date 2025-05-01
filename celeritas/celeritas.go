@@ -6,6 +6,7 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/dgraph-io/badger/v4"
 	"github.com/fouched/celeritas/cache"
+	"github.com/fouched/celeritas/mailer"
 	"github.com/fouched/celeritas/render"
 	"github.com/fouched/celeritas/session"
 	"github.com/go-chi/chi/v5"
@@ -40,6 +41,7 @@ type Celeritas struct {
 	config        config // no reason to export this
 	EncryptionKey string
 	Cache         cache.Cache
+	Mail          mailer.Mail
 }
 
 type config struct {
@@ -54,7 +56,7 @@ type config struct {
 func (c *Celeritas) New(rootPath string) error {
 	pathConfig := initPaths{
 		rootPath:    rootPath,
-		folderNames: []string{"handlers", "migrations", "views", "data", "public", "tmp", "logs", "middleware"},
+		folderNames: []string{"handlers", "migrations", "views", "mail", "data", "public", "tmp", "logs", "middleware"},
 	}
 
 	err := c.Init(pathConfig)
@@ -75,11 +77,14 @@ func (c *Celeritas) New(rootPath string) error {
 
 	// create loggers
 	infoLog, errorLog := c.startLoggers()
+
+	// set Celeritas configuration
 	c.InfoLog = infoLog
 	c.ErrorLog = errorLog
-	c.Debug, _ = strconv.ParseBool(os.Getenv("DEBUG"))
+	c.Debug, _ = strconv.ParseBool(os.Getenv("DEBUG")) // in production or not
 	c.Version = version
 	c.RootPath = rootPath
+	c.Mail = c.createMailer()
 	c.Routes = c.routes().(*chi.Mux)
 
 	// connect to database if specified
@@ -97,13 +102,13 @@ func (c *Celeritas) New(rootPath string) error {
 	}
 
 	if os.Getenv("CACHE") == "redis" || os.Getenv("SESSION_TYPE") == "redis" {
-		redisCache = c.createClientRedisCache()
+		redisCache = c.createRedisCache()
 		c.Cache = redisCache
 		redisPool = redisCache.Conn
 	}
 
 	if os.Getenv("CACHE") == "badger" {
-		badgerCache = c.createClientBadgerCache()
+		badgerCache = c.createBadgerCache()
 		c.Cache = badgerCache
 		badgerConn = badgerCache.Conn
 
@@ -171,6 +176,7 @@ func (c *Celeritas) New(rootPath string) error {
 	}
 
 	c.createRenderer()
+	go c.Mail.ListenForMail()
 
 	return nil
 }
@@ -245,6 +251,28 @@ func (c *Celeritas) createRenderer() {
 	c.Render = &myRenderer
 }
 
+func (c *Celeritas) createMailer() mailer.Mail {
+	port, _ := strconv.Atoi(os.Getenv("SMTP_PORT"))
+	m := mailer.Mail{
+		Domain:      os.Getenv("MAIL_DOMAIN"),
+		Templates:   c.RootPath + "/mail",
+		Host:        os.Getenv("SMTP_HOST"),
+		Port:        port,
+		Username:    os.Getenv("SMTP_USERNAME"),
+		Password:    os.Getenv("SMTP_PASSWORD"),
+		Encryption:  os.Getenv("SMTP_ENCRYPTION"),
+		FromAddress: os.Getenv("MAIL_FROM_NAME"),
+		FromName:    os.Getenv("MAIL_FROM_ADDRESS"),
+		Jobs:        make(chan mailer.Message, 20),
+		Results:     make(chan mailer.Result, 20),
+		API:         os.Getenv("MAILER_API"),
+		APIKey:      os.Getenv("MAILER_KEY"),
+		APIUrl:      os.Getenv("MAILER_URL"),
+	}
+
+	return m
+}
+
 func (c *Celeritas) BuildDSN() string {
 	var dsn string
 
@@ -265,7 +293,7 @@ func (c *Celeritas) BuildDSN() string {
 	return dsn
 }
 
-func (c *Celeritas) createClientBadgerCache() *cache.BadgerCache {
+func (c *Celeritas) createBadgerCache() *cache.BadgerCache {
 	cacheClient := cache.BadgerCache{
 		Conn: c.createBadgerConn(),
 	}
@@ -282,7 +310,7 @@ func (c *Celeritas) createBadgerConn() *badger.DB {
 	return db
 }
 
-func (c *Celeritas) createClientRedisCache() *cache.RedisCache {
+func (c *Celeritas) createRedisCache() *cache.RedisCache {
 	cacheClient := cache.RedisCache{
 		Conn:   c.createRedisPool(),
 		Prefix: c.config.redis.prefix,

@@ -61,7 +61,8 @@ func showHelp() {
     version                  - print version
     make auth                - creates authentication tables, models and middleware
     make handler <name>      - creates a stub handler in the handlers directory
-    make key                 - creates a random 32 character encryption key 
+    make key                 - creates a random 32 character encryption key
+    make mail <name>         - creates starter templates for text and html emails in the mail directory
     make model <name>        - creates a new model in the data directory
     make session             - creates a new table as a session store
     
