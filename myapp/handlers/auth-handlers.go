@@ -1,6 +1,13 @@
 package handlers
 
-import "net/http"
+import (
+	"crypto/sha256"
+	"encoding/base64"
+	"fmt"
+	"myapp/data"
+	"net/http"
+	"time"
+)
 
 func (h *Handlers) UserLoginGet(w http.ResponseWriter, r *http.Request) {
 	err := h.render(w, r, "login", nil, nil)
@@ -30,9 +37,46 @@ func (h *Handlers) UserLoginPost(w http.ResponseWriter, r *http.Request) {
 		h.App.ErrorLog.Println(err.Error())
 		return
 	}
+
 	if !matches {
 		h.App.ErrorLog.Println("Invalid password")
 		return
+	}
+
+	// did user check remember me?
+	if r.Form.Get("remember") == "remember" {
+		randomString := h.randomString(12)
+		hasher := sha256.New()
+		_, err := hasher.Write([]byte(randomString))
+		if err != nil {
+			h.App.ErrorStatus(w, http.StatusBadRequest)
+			return
+		}
+
+		sha := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+		rm := data.RememberToken{}
+		err = rm.InsertToken(user.ID, sha)
+		if err != nil {
+			h.App.ErrorStatus(w, http.StatusBadRequest)
+			return
+		}
+
+		// set the cookie
+		expire := time.Now().Add(365 * 24 * 60 * 60 * time.Second) // a year!
+		cookie := http.Cookie{
+			Name:     fmt.Sprintf("_%s_remember", h.App.AppName),
+			Value:    fmt.Sprintf("%d|%s", user.ID, sha),
+			Path:     "/",
+			Expires:  expire,
+			HttpOnly: true,
+			Domain:   h.App.Session.Cookie.Domain,
+			MaxAge:   315350000,
+			Secure:   h.App.Session.Cookie.Secure,
+			SameSite: http.SameSiteStrictMode,
+		}
+		http.SetCookie(w, &cookie)
+		// save hash in session
+		h.App.Session.Put(r.Context(), "remember_token", sha)
 	}
 
 	h.sessionPut(r.Context(), "userID", user.ID)
@@ -41,8 +85,30 @@ func (h *Handlers) UserLoginPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) LogOut(w http.ResponseWriter, r *http.Request) {
+	// delete remember token if it exits
+	if h.App.Session.Exists(r.Context(), "remember_token") {
+		rt := data.RememberToken{}
+		_ = rt.Delete(h.App.Session.GetString(r.Context(), "remember_token"))
+	}
+	// delete cookie
+	newCookie := http.Cookie{
+		Name:     fmt.Sprintf("_%s_remember", h.App.AppName),
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Now().Add(-100 * time.Hour),
+		HttpOnly: true,
+		Domain:   h.App.Session.Cookie.Domain,
+		MaxAge:   -1,
+		Secure:   h.App.Session.Cookie.Secure,
+		SameSite: http.SameSiteStrictMode,
+	}
+	http.SetCookie(w, &newCookie)
+
 	_ = h.sessionRenew(r.Context())
 	h.sessionRemove(r.Context(), "userID")
+	h.sessionRemove(r.Context(), "remember_token")
+	_ = h.sessionDestroy(r.Context())
+	_ = h.sessionRenew(r.Context())
 
 	http.Redirect(w, r, "/users/login", http.StatusSeeOther)
 }
