@@ -4,6 +4,8 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"github.com/fouched/celeritas/mailer"
+	"github.com/fouched/celeritas/urlsigner"
 	"myapp/data"
 	"net/http"
 	"time"
@@ -122,5 +124,53 @@ func (h *Handlers) ForgotGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) ForgotPost(w http.ResponseWriter, r *http.Request) {
+	// parse form
+	err := r.ParseForm()
+	if err != nil {
+		h.App.ErrorStatus(w, http.StatusBadRequest)
+		return
+	}
 
+	// verify supplied email
+	var u *data.User
+	email := r.Form.Get("email")
+	u, err = u.GetByEmail(email)
+	if err != nil {
+		h.App.ErrorStatus(w, http.StatusBadRequest)
+		return
+	}
+
+	// create link to password reset form
+	link := fmt.Sprintf("%s/users/reset-password?email=%s", h.App.Server.URL, email)
+
+	// sign the link
+	sign := urlsigner.Signer{
+		Secret: []byte(h.App.EncryptionKey),
+	}
+	signedLink := sign.GenerateTokenFromString(link)
+	h.App.InfoLog.Println("Signed link is: ", signedLink)
+
+	// email msg
+	var emailData struct {
+		Link string
+	}
+	emailData.Link = signedLink
+
+	msg := mailer.Message{
+		To:       u.Email,
+		From:     "admin@example.com",
+		Subject:  "Password reset",
+		Template: "password-reset",
+		Data:     emailData,
+	}
+
+	h.App.Mail.Jobs <- msg
+	res := <-h.App.Mail.Results
+	if res.Error != nil {
+		h.App.ErrorStatus(w, http.StatusBadRequest)
+		return
+	}
+
+	// redir user
+	http.Redirect(w, r, "/users/login", http.StatusSeeOther)
 }
