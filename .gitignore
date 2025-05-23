@@ -31,3 +31,4 @@ go.work.sum
 .idea
 myapp/db-data
 tmp
+/celeritas/dist/celeritas

@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/exec"
 	"runtime"
 	"strings"
 )
@@ -58,9 +59,9 @@ func doNew(appName string) {
 	}
 
 	// create a makefile
-	source, err := os.Open(fmt.Sprintf("./%s.Makefile.linux", appName))
+	source, err := os.Open(fmt.Sprintf("./%s/Makefile.linux", appName))
 	if runtime.GOOS == "windows" {
-		source, err = os.Open(fmt.Sprintf("./%s.Makefile.windows", appName))
+		source, err = os.Open(fmt.Sprintf("./%s/Makefile.windows", appName))
 	}
 	if err != nil {
 		exitGracefully(err)
@@ -78,8 +79,8 @@ func doNew(appName string) {
 		exitGracefully(err)
 	}
 
-	_ = os.Remove(fmt.Sprintf("./%s.Makefile.linux", appName))
-	_ = os.Remove(fmt.Sprintf("./%s.Makefile.windows", appName))
+	_ = os.Remove(fmt.Sprintf("./%s/Makefile.linux", appName))
+	_ = os.Remove(fmt.Sprintf("./%s/Makefile.windows", appName))
 
 	// update go.mod file
 	color.Yellow("\tCreating go.mod file...")
@@ -101,4 +102,13 @@ func doNew(appName string) {
 	updateSource()
 
 	// run go mod tidy in project directory
+	color.Yellow("\tRunning go mod tidy...")
+	cmd := exec.Command("go", "mod", "tidy")
+	err = cmd.Start()
+	if err != nil {
+		exitGracefully(err)
+	}
+
+	color.Green("Done building " + appURL)
+	color.Green("Go build something awesome")
 }
