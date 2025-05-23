@@ -5,6 +5,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/joho/godotenv"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 func setup(arg1, arg2 string) {
@@ -73,4 +75,48 @@ func showHelp() {
     migrate down             - reverses most recent migration
     migrate reset            - runs all down migrations, then all up migrations
     `)
+}
+
+func updateSource() {
+	// walk entire project folder
+	err := filepath.Walk(".", updateSourceFiles)
+	if err != nil {
+		exitGracefully(err)
+	}
+}
+
+func updateSourceFiles(path string, fi os.FileInfo, err error) error {
+	// check for error
+	if err != nil {
+		return err
+	}
+
+	// check if current file is directory and ignore it
+	if fi.IsDir() {
+		return nil
+	}
+
+	// only check go files
+	matched, err := filepath.Match("*.go", fi.Name())
+	if err != nil {
+		return err
+	}
+
+	// have matching file
+	if matched {
+		// read file contents
+		read, err := os.ReadFile(path)
+		if err != nil {
+			exitGracefully(err)
+		}
+
+		newContents := strings.Replace(string(read), "myapp", appURL, -1)
+
+		// write changed file
+		err = os.WriteFile(path, []byte(newContents), 0) // 0 don't change permissions
+		if err != nil {
+			exitGracefully(err)
+		}
+	}
+	return nil
 }

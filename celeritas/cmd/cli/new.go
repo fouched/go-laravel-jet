@@ -96,6 +96,8 @@ func doNew(appName string) {
 	err = copyDataToFile([]byte(mod), "./"+appName+"/go.mod")
 
 	// update existing .go files with correct name/imports
+	color.Yellow("\tUpdating source files...")
+	updateSource()
 
 	// run go mod tidy in project directory
 }
