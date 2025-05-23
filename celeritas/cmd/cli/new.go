@@ -11,8 +11,11 @@ import (
 	"strings"
 )
 
+var appURL string
+
 func doNew(appName string) {
 	appName = strings.ToLower(appName)
+	appURL = appName
 
 	// sanitize appName
 	if strings.Contains(appName, "/") {
@@ -79,6 +82,18 @@ func doNew(appName string) {
 	_ = os.Remove(fmt.Sprintf("./%s.Makefile.windows", appName))
 
 	// update go.mod file
+	color.Yellow("\tCreating go.mod file...")
+	_ = os.Remove(fmt.Sprintf("./%s/go.mod", appName))
+
+	data, err = templateFS.ReadFile("templates/go.mod.txt")
+	if err != nil {
+		exitGracefully(err)
+	}
+
+	mod := string(data)
+	mod = strings.ReplaceAll(mod, "${APP_NAME}", appURL)
+
+	err = copyDataToFile([]byte(mod), "./"+appName+"/go.mod")
 
 	// update existing .go files with correct name/imports
 
